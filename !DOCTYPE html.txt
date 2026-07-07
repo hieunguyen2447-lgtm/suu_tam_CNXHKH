@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn thi CNXHKH</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; line-height: 1.6; }
+        .quiz-container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; text-transform: uppercase; }
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .question p { font-weight: bold; color: #2c3e50; }
+        .option { margin-bottom: 10px; display: block; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s; }
+        .option:hover { background-color: #f0f8ff; }
+        button { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 15px; font-size: 16px; width: 100%; font-weight: bold;}
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; font-size: 18px; font-weight: bold; color: #d35400; text-align: center; white-space: pre-line; padding: 15px; background: #fff3e0; border-radius: 5px; display: none;}
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h2>Trắc nghiệm: Sưu tầm CNXHKH</h2>
+    <div id="quiz"></div>
+    <button onclick="submitQuiz()">Nộp bài / Chấm điểm</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    // Dữ liệu 38 câu hỏi (Đã tích hợp sẵn vị trí đáp án đúng chuẩn)
+    const quizData = [
+        { "question": "Câu 1. Quan hệ nào được coi là quan hệ cơ bản nhất trong gia đình?", "options": ["Hôn nhân và nuôi dưỡng", "Hôn nhân và huyết thống", "Quần tụ trong một không gian", "Quan hệ nuôi dưỡng, giáo dục"], "answer": 1 },
+        { "question": "Câu 2. Có mấy chức năng cơ bản của gia đình?", "options": ["3", "4", "5", "6"], "answer": 1 },
+        { "question": "Câu 3. Chức năng nào được coi là chức năng cơ bản và riêng có của gia đình?", "options": ["Tái sản xuất ra con người", "Tổ chức đời sống gia đình", "Giáo dục gia đình", "Thoả mãn tâm sinh lý"], "answer": 0 },
+        { "question": "Câu 4. Sự biến đổi của gia đình Việt Nam trong thời kỳ quá độ lên chủ nghĩa xã hội theo những khuynh hướng cơ bản nào?", "options": ["Biến đổi quy mô, kết cấu của gia đình, quan hệ của gia đình", "Biến đổi các chức năng của gia đình, quan hệ của gia đình", "Biến đổi từ quy mô, kết cấu, chức năng, quan hệ của gia đình", "Biến đổi về quan hệ xã hội, kinh tế, văn hóa của gia đình"], "answer": 2 },
+        { "question": "Câu 5. Hôn nhân tự nguyện, tiến bộ là hôn nhân được xây dựng chủ yếu dựa trên cơ sở nào?", "options": ["Quyền tự do kết hôn và ly hôn", "Tình yêu chân chính", "Tình yêu nam – nữ", "Kinh tế - xã hội xã hội chủ nghĩa"], "answer": 1 },
+        { "question": "Câu 6. Nội dung cơ bản và trực tiếp để xây dựng gia đình ở Việt Nam hiện nay là gì?", "options": ["Phát triển kinh tế - xã hội.", "Nâng cao trình độ dân trí cho nhân dân lao động.", "Xây dựng gia đình no ấm, bình đẳng, tiến bộ và hạnh phúc.", "Giải phóng người phụ nữ."], "answer": 2 },
+        { "question": "Câu 7. Theo quan điểm của Chủ nghĩa Mác - Lênin, việc thực hiện chế độ hôn nhân một vợ một chồng mang lại ý nghĩa gì?", "options": ["Là cơ sở để duy trì quyền gia trưởng của người đàn ông trong gia đình.", "Là sự áp đặt của pháp luật nhằm hạn chế quyền tự do cá nhân của con người.", "Phù hợp với quy luật tự nhiên, tâm lý, tình cảm, đạo đức của con người.", "Hôn nhân bình đẳng, tôn trọng lẫn nhau và được xã hội đảm bảo về mặt pháp lý."], "answer": 2 },
+        { "question": "Câu 8. Cơ sở kinh tế - xã hội để xây dựng gia đình trong chủ nghĩa xã hội là gì?", "options": ["Phát triển nền kinh tế nhiều thành phần.", "Hoàn thiện các chính sách văn hóa - xã hội", "Tăng cường sự lãnh đạo của Đảng cộng sản", "Xây dựng nhà nước pháp quyền xã hội chủ nghĩa"], "answer": 0 },
+        { "question": "Câu 8 (Phần bình đẳng giới). Cách hiểu nào dưới đây là đúng về bình đẳng giới trong gia đình hiện nay:", "options": ["Bình đẳng giới trong gia đình là bắt người phụ nữ phải làm những công việc giành cho đàn ông và ngược lại...", "Xã hội chưa thực sự đạt được bình đẳng giới nên cần tiếp tục phải đấu tranh.", "Đấu tranh cho bình đẳng giới là đấu tranh để mọi người đều được tạo điều kiện làm những việc theo ý muốn của mình, không bị giới hạn bởi giới tính.", "Bản chất sinh học, tâm lý của đàn ông và phụ nữ đã khác nhau thì không thể đòi hỏi quyền bình đẳng thực sự."], "answer": 2 },
+        { "question": "Câu 9. Cơ sở văn hóa - xã hội để xây dựng gia đình trong chủ nghĩa xã hội là gì?", "options": ["Phát triển kinh tế nhiều thành phần, nâng cao vai trò lãnh đạo của Đảng", "Xây dựng và hoàn thiện hệ thống pháp luật, nâng cao vai trò lãnh đạo của Đảng", "Nâng cao đời sống vật chất cho nhân dân, nâng cao vai trò lãnh đạo của Đảng", "Phát triển hệ thống giáo dục đào tạo, khoa học nhằm nâng cao trình độ dân trí"], "answer": 3 },
+        { "question": "Câu 10. Câu nói: “Nhiều gia đình cộng lại mới thành xã hội, xã hội tốt thì gia đình càng tốt, gia đình tốt thì xã hội mới tốt. Hạt nhân của xã hội chính là gia đình\" là của ai:", "options": ["Ph. Ăngghen", "V.I. Lênin", "Hồ Chí Minh", "Lê Duẩn"], "answer": 2 },
+        { "question": "Câu 11. Câu nói trên phản ánh vị trí nào của gia đình trong xã hội?", "options": ["Gia đình là tế bào của xã hội", "Mang lại các giá trị hạnh phúc", "Cầu nối giữa cá nhân với xã hội", "Đảm bảo đời sống các thành viên"], "answer": 0 },
+        { "question": "Câu 12. Cơ sở chính trị - xã hội cơ bản nhất để xây dựng gia đình Việt Nam trong thời kỳ quá độ lên chủ nghĩa xã hội là:", "options": ["Thực hiện chính sách kế hoạch hóa dân số gia đình", "Thành lập Công đoàn, Hội liên hiệp phụ nữ Việt Nam", "Thiết lập chính quyền nhà nước xã hội chủ nghĩa", "Hôn nhân một vợ một chồng, bình đẳng, hạnh phúc"], "answer": 2 },
+        { "question": "Câu 13. Cơ sở kinh tế - xã hội cơ bản nhất để xây dựng gia đình Việt Nam trong thời kỳ quá độ lên chủ nghĩa xã hội là:", "options": ["Phát triển lực lượng sản xuất và hoàn thiện quan hệ sản xuất", "Phát triển nền kinh tế thị trường định hướng xã hội chủ nghĩa", "Thực hiện công nghiệp hóa, hiện đại hóa nền kinh tế quốc dân", "Xây dựng mối quan hệ bình đẳng gia đình và giải phóng phụ nữ"], "answer": 0 },
+        { "question": "Câu 14. Chức năng kinh tế của gia đình Việt Nam đang biến đổi theo xu hướng nào?", "options": ["Chuyển từ ít quan trọng sang quan trọng hơn", "Chuyển từ đơn vị sản xuất sang đơn vị tiêu dùng", "Chuyển từ kinh tế hàng hóa sang kinh tế thị trường", "Chuyển từ kinh tế tự cấp, tự túc sang kinh tế hàng hóa"], "answer": 1 },
+        { "question": "Câu 15. Phương hướng cơ bản THỨ NHẤT xây dựng và phát triển gia đình Việt Nam trong thời kỳ quá độ chủ nghĩa xã hội là:", "options": ["Tiếp tục phát triển và nâng cao chất lượng phong trào xây dựng gia đình văn hóa", "Đẩy mạnh phát triển kinh tế - xã hội, nâng cao đời sống vật chất, kinh tế hộ gia đình", "Tăng cường sự lãnh đạo của Đảng, nâng cao nhận thức của xã hội về xây dựng và phát triển gia đình Việt Nam", "Kế thừa những giá trị của gia đình truyền thống, tiếp thu những tiến bộ của nhân loại về gia đình"], "answer": 2 },
+        { "question": "Câu 16. Phương hướng cơ bản THỨ BA xây dựng và phát triển gia đình Việt Nam trong thời kỳ quá độ chủ nghĩa xã hội là:", "options": ["Tiếp tục phát triển và nâng cao chất lượng phong trào xây dựng gia đình văn hóa", "Đẩy mạnh phát triển kinh tế - xã hội, nâng cao đời sống vật chất, kinh tế hộ gia đình", "Tăng cường sự lãnh đạo của Đảng, nâng cao nhận thức của xã hội về xây dựng và phát triển gia đình", "Kế thừa những giá trị của gia đình truyền thống, tiếp thu những tiến bộ của nhân loại về gia đình"], "answer": 3 },
+        { "question": "Câu 17. Yếu tố quyết định cho việc xây dựng quan hệ bình đẳng trong gia đình và giải phóng phụ nữ trong xã hội là:", "options": ["Cơ sở kinh tế - xã hội", "Cơ sở chính trị - xã hội", "Cơ sở văn hóa – xã hội", "Hệ thống pháp luật đúng"], "answer": 0 },
+        { "question": "Câu 18. Tìm đáp án SAI trong quan hệ gia đình:", "options": ["Quan hệ hôn nhân", "Quan hệ huyết thống", "Quan hệ giới tính", "Quan hệ nuôi dưỡng"], "answer": 2 },
+        { "question": "Câu 18 (Phần nguyên nhân). Nội dung nào dưới đây là nguyên nhân sâu xa gây nên tình trạng thống trị của người đàn ông trong gia đình, sự bất bình đẳng giữa nam nữ, giữa vợ và chồng và sự nô dịch với phụ nữ?", "options": ["Chế độ công hữu về tư liệu sản xuất.", "Chế độ một vợ, một chồng.", "Chế độ tư hữu về tư liệu sản xuất.", "Chế độ đa thê."], "answer": 2 },
+        { "question": "Câu 19. Quan hệ cơ bản của gia đình là:", "options": ["Quan hệ giữa vợ và chồng, giữa cha mẹ và con cái", "Quan hệ giữa cha mẹ và con cái; giữa anh chị em với nhau", "Quan hệ giữa anh chị em với nhau; giữa vợ và chồng", "Quan hệ giữa vợ và chồng và các mối quan hệ khác"], "answer": 0 },
+        { "question": "Câu 20. Chức năng nào được coi là chức năng thường xuyên của gia đình?", "options": ["Tái sản xuất ra con người", "Tổ chức đời sống gia đình", "Giáo dục và nuôi dưỡng", "Thoả mãn nhu cầu tâm sinh lý, duy trì tình cảm"], "answer": 3 },
+        { "question": "Câu 21. Cơ sở chính trị - xã hội để xây dựng gia đình trong thời kì quá độ lên chủ nghĩa xã hội ở nước ta là:", "options": ["Thiết lập nhà nước xã hội chủ nghĩa", "Xây dựng hoàn thiện hệ thống pháp luật", "Xây dựng Luật Hôn nhân và Gia đình", "Xây dựng hệ thống chính sách xã hội"], "answer": 0 },
+        { "question": "Câu 22. Có mấy phương hướng cơ bản xây dựng và phát triển gia đình Việt Nam hiện nay?", "options": ["3 phương hướng", "4 phương hướng", "5 phương hướng", "6 phương hướng"], "answer": 1 },
+        { "question": "Câu 28. Biểu hiện nào dưới đây KHÔNG phải là tác động tiêu cực của nền kinh tế thị trường định hướng xã hội chủ nghĩa tới gia đình ở Việt Nam?", "options": ["Ngoại tình, ly hôn có chiều hướng ngày càng gia tăng", "Sự phân hóa giàu nghèo giữa các gia đình ngày càng tăng lên", "Tăng thêm thu nhập của các thành viên trong gia đình", "Trẻ em buộc phải nghỉ học sớm để tham gia vào thị trường lao động"], "answer": 2 },
+        { "question": "Câu 4 (Phần II). Đặc điểm nào dưới đây của dân tộc Việt Nam vừa tạo cơ sở cho sự đoàn kết, thống nhất hữu cơ giữa các dân tộc, vừa tiềm ẩn nguy cơ của những mâu thuẫn, thậm chí sự kì thị hoặc xung đột trong quan hệ dân tộc:", "options": ["Các dân tộc Việt Nam có trình độ phát triển khác nhau.", "Các dân tộc Việt Nam có tinh thần yêu nước.", "Các dân tộc Việt Nam có ý thức cộng đồng cao.", "Các dân tộc Việt Nam có địa bàn cư trú đan xen."], "answer": 3 },
+        { "question": "Câu 5 (Phần II). Tục ngữ Việt Nam có câu: “Phù thủy, thầy bói, lái trâu. Nghe ba thằng ấy đầu lâu chẳng còn”. Câu tục ngữ này muốn truyền tải thông điệp nào dưới đây:", "options": ["Bói toán xuất hiện và tồn tại tất yếu từ nhu cầu đông đảo của quần chúng nhân dân.", "Phê phán, đả kích, loại bỏ các hành vi bói toán, mê tín dị đoan gây tác động xấu đến đời sống xã hội.", "Bói toán là một loại hình tín ngưỡng dân gian, cứu rỗi tinh thần con người.", "Cả A và B."], "answer": 1 },
+        { "question": "Câu 6 (Phần II). V.I.Lênin cho rằng: “Sự bất lực của giai cấp bị bóc lột trong công cuộc đấu tranh chống bọn bóc lột tất nhiên đẻ ra lòng tin vào cuộc đời tốt đẹp ở thế giới bên kia...\". Nhận định này đã khẳng định rõ vấn đề nào?", "options": ["Nguồn gốc nhận thức của tôn giáo.", "Nguồn gốc tâm lý của tôn giáo.", "Nguồn gốc từ sự khốn cùng của giai cấp bị bóc lột (Nguồn gốc kinh tế - xã hội).", "Nguồn gốc từ trong hiện thực."], "answer": 2 },
+        { "question": "Câu 13 (Phần II). V.I. Lênin cho rằng: “Tôn giáo là một trong những hình thức áp bức về tinh thần...”. Đảng ta khẳng định: “Việc theo đạo... phải tuân thủ Hiến pháp và Pháp luật...”. Quan điểm của Đảng ta có đối lập với V.I. Lenin không?", "options": ["Không đối lập nhau mà còn thống nhất với nhau, ở chỗ đều thấy được sự tồn tại tất yếu lâu dài...", "Không đối lập mà còn là sự vận dụng, kế thừa và phát triển. Thừa nhận bên cạnh vai trò tích cực, tôn giáo còn chứa đựng và tiềm ẩn trong nó nhiều mặt tiêu cực...", "Hai quan điểm này đối lập nhau...", "Cả A, B, C đều sai."], "answer": 1 },
+        { "question": "Câu 34 (Phần II). Theo chủ nghĩa Mác - Lênin, khi khoa học và giáo dục giúp cho đại đa số quần chúng nhân dân nhận thức tôn giáo sẽ thay đổi theo hướng nào?", "options": ["Tôn giáo sẽ trở nên khoa học", "Tôn giáo sẽ biến mất hoàn toàn", "Tôn giáo sẽ dần mất đi vị trí của nó", "Tôn giáo sẽ ngày càng phát triển"], "answer": 2 },
+        { "question": "Câu 35 (Phần II). Chính sách dân tộc của Đảng ta phải chú trọng nhất đến lĩnh vực nào dưới đây để thực hiện bình đẳng và đoàn kết giữa các dân tộc?", "options": ["Chính trị", "Giáo dục", "Kinh tế", "Văn hóa - xã hội"], "answer": 2 },
+        { "question": "Câu 2 (Phần III). Nội dung nào dưới đây KHÔNG phản ánh sự đổi mới về nhận thức của Đảng ta về dân chủ xã hội chủ nghĩa:", "options": ["Dân chủ gắn liền với kỷ luật, kỷ cương và phải được thể chế hóa bằng pháp luật.", "Đặc trưng của dân chủ XHCN ở Việt Nam là do nhân dân làm chủ...", "Dân chủ XHCN ở Việt Nam đã được xây dựng hoàn thiện, đảm bảo dân chủ được thực hiện trong thực tế cuộc sống ở tất cả các cấp... (Chưa hoàn thiện)", "Dân chủ XHCN là bản chất của chế độ ta, vừa là mục tiêu, vừa là động lực."], "answer": 2 },
+        { "question": "Câu 19 (Phần III). Đánh giá về những đóng góp của V.I. Lênin... “Nếu không có V.I.Lênin... không thể xuất hiện cả một tuyến tiến hoá có quy mô ngang với tuyến mà đại diện là tuyến tư bản phương Tây\". Đánh giá trên nhằm khẳng định:", "options": ["Nhấn mạnh vai trò lịch sử, cống hiến vĩ đại, giá trị khai sáng, tinh thần mở lối và xác lập một xu hướng phát triển, một “tuyến tiến hoá” mới cho cả nhân loại của V.I. Lênin - quá độ lên chủ nghĩa xã hội trên phạm vi toàn thế giới.", "Cống hiến vĩ đại của V.I. Lênin còn thể hiện ở thành quả bảo vệ thành công chủ nghĩa Mác - Lênin trước sự xuyên tạc...", "Từ Chính sách cộng sản thời chiến đến NEP, V.I. Lênin đã trở thành nhà cách tân vĩ đại đầu tiên...", "V.I. Lênin không chỉ kế thừa trung thành học thuyết khoa học, cách mạng của chủ nghĩa Mác mà còn bổ sung..."], "answer": 0 },
+        { "question": "Câu 20 (Phần III). Đảng Cộng sản Việt Nam khẳng định: \"Trong toàn bộ hoạt động của mình, Đảng phải quán triệt tư tưởng \"lấy dân làm gốc\"...\" tại văn kiện nào dưới đây?", "options": ["Văn kiện Đại hội Đảng toàn quốc lần thứ IV", "Văn kiện Đại hội Đảng toàn quốc lần thứ VI (Năm 1986)", "Văn kiện Đại hội Đảng toàn quốc lần thứ VII", "Văn kiện Đại hội Đảng toàn quốc lần thứ XI"], "answer": 1 },
+        { "question": "Câu 25 (Phần III). Nền dân chủ xã hội chủ nghĩa dựa trên hệ tư tưởng của giai cấp, tầng lớp nào sau đây?", "options": ["Giai cấp tư sản.", "Giai cấp công nhân.", "Giai cấp nông dân.", "Tầng lớp trí thức."], "answer": 1 },
+        { "question": "Câu 30 (Phần III). Theo quan điểm của chủ nghĩa Mác - Lênin, giữa hình thái kinh tế xã hội tư bản chủ nghĩa và cộng sản chủ nghĩa tồn tại một thời kỳ lịch sử có vai trò cải biến cách mạng. Đó là thời kỳ nào?", "options": ["Thời kỳ chuyển tiếp lên chủ nghĩa xã hội", "Thời kỳ chuyển giao quyền lực", "Thời kỳ quá độ lên chủ nghĩa xã hội", "Thời kỳ “quá độ chờ” của chủ nghĩa xã hội"], "answer": 2 },
+        { "question": "Câu 31 (Phần III). Nội dung nào dưới đây KHÔNG phải là định hướng nhằm tiếp tục xây dựng và hoàn thiện Nhà nước pháp quyền xã hội chủ nghĩa ở Việt Nam?", "options": ["Xây dựng Nhà nước pháp quyền xã hội chủ nghĩa đặt dưới sự lãnh đạo của nhân dân.", "Xây dựng đội ngũ cán bộ, công chức, đảng viên trong sạch, có năng lực.", "Đấu tranh phòng, chống tham nhũng, lãng phí, thực hành tiết kiệm.", "Cải cách thể chế và phương thức hoạt động của Nhà nước."], "answer": 0 },
+        { "question": "Câu 33 (Phần III). Nền dân chủ nào được đánh giá là \"cao hơn về chất so với nền dân chủ tư sản, ở đó mọi quyền lực thuộc về nhân dân, dân là chủ và dân làm chủ...\"?", "options": ["Nền dân chủ nguyên thuỷ", "Nền dân chủ chủ nô", "Nền dân chủ tư sản", "Nền dân chủ xã hội chủ nghĩa"], "answer": 3 }
+    ];
+
+   const quizElement = document.getElementById('quiz');
+    const resultElement = document.getElementById('result');
+
+    // 1. Render danh sách câu hỏi ra màn hình (Giữ nguyên thứ tự gốc 100%)
+    function loadQuiz() {
+        quizData.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            
+            // In trực tiếp câu hỏi gốc
+            questionDiv.innerHTML = `<p>${q.question}</p>`; 
+            
+            q.options.forEach((opt, optIndex) => {
+                questionDiv.innerHTML += `
+                    <label class="option">
+                        <input type="radio" name="question${index}" value="${optIndex}">
+                        ${opt}
+                    </label>
+                `;
+            });
+            quizElement.appendChild(questionDiv);
+        });
+    }
+
+    // 2. Xử lý logic khi nộp bài
+    function submitQuiz() {
+        let score = 0;
+        let attempted = 0;
+        const total = quizData.length;
+        
+        quizData.forEach((q, index) => {
+            const options = document.querySelectorAll(`input[name="question${index}"]`);
+            let isAnswered = false;
+            
+            options.forEach((radio, optIndex) => {
+                const label = radio.parentElement;
+                
+                // Trả về mặc định trước khi chấm
+                label.style.color = '#333';
+                label.style.fontWeight = 'normal';
+                label.style.textDecoration = 'none';
+
+                // Luôn bôi xanh đáp án đúng
+                if (optIndex === q.answer) {
+                    label.style.color = '#27ae60';
+                    label.style.fontWeight = 'bold';
+                }
+                
+                // Xử lý khi người dùng có tích chọn
+                if (radio.checked) {
+                    isAnswered = true;
+                    if (optIndex === q.answer) {
+                        score++;
+                    } else {
+                        // Chọn sai thì bôi đỏ, gạch ngang
+                        label.style.color = '#e74c3c';
+                        label.style.fontWeight = 'bold';
+                        label.style.textDecoration = 'line-through';
+                    }
+                }
+            });
+
+            if (isAnswered) attempted++;
+        });
+        
+        // Hiển thị kết quả
+        resultElement.style.display = 'block';
+        resultElement.innerText = `Bạn đã làm: ${attempted} / ${total} câu.\nBạn trả lời đúng: ${score} / ${total} câu!`;
+        resultElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Chạy khi trang vừa tải xong
+    loadQuiz();
+</script>
+
+</body>
+</html>
